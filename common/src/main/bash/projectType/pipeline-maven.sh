@@ -42,7 +42,7 @@ function apiCompatibilityCheck() {
 		mkdir -p "${OUTPUT_FOLDER}"
 		echo "PASSED_LATEST_PROD_TAG=${prodTag}" >>"${fileLocation}"
 		# Downloading latest jar
-		LATEST_PROD_VERSION=${prodTag#prod/}
+		LATEST_PROD_VERSION=${prodTag#"prod/${PROJECT_NAME}/"}
 		echo "Last prod version equals [${LATEST_PROD_VERSION}]"
 		if [[ "${CI}" == "CONCOURSE" ]]; then
 			# shellcheck disable=SC2086

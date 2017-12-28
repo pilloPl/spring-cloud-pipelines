@@ -104,7 +104,7 @@ function findLatestProdTag() {
 		echo "${prodTag}"
 	else
 		local latestProdTag
-		latestProdTag=$("${GIT_BIN}" for-each-ref --sort=taggerdate --format '%(refname)' refs/tags/prod | tail -1)
+		latestProdTag=$("${GIT_BIN}" for-each-ref --sort=taggerdate --format '%(refname)' "refs/tags/prod/${PROJECT_NAME}" | tail -1)
 		export LATEST_PROD_TAG PASSED_LATEST_PROD_TAG
 		LATEST_PROD_TAG="${latestProdTag#refs/tags/}"
 		PASSED_LATEST_PROD_TAG="${LATEST_PROD_TAG}"
@@ -147,10 +147,13 @@ function serviceExists() {
 # Sets the environment variable with contents of the parsed pipeline descriptor
 # shellcheck disable=SC2120
 function parsePipelineDescriptor() {
+	export PIPELINE_DESCRIPTOR_PRESENT
 	if [[ ! -f "${PIPELINE_DESCRIPTOR}" ]]; then
 		echo "No pipeline descriptor found - will not deploy any services"
+		PIPELINE_DESCRIPTOR_PRESENT="false"
 		return
 	fi
+	PIPELINE_DESCRIPTOR_PRESENT="true"
 	export PARSED_YAML
 	PARSED_YAML=$(yaml2json "${PIPELINE_DESCRIPTOR}")
 }
@@ -195,6 +198,11 @@ function toLowerCase() {
 	echo "$1" | tr '[:upper:]' '[:lower:]'
 }
 
+# Gets the build coordinates from descriptor
+function getBuildCoordinates() {
+	echo "${PARSED_YAML}" | jq -r '.build.coordinates'
+}
+
 PAAS_TYPE="$( toLowerCase "${PAAS_TYPE:-cf}" )"
 # Not every linux distribution comes with installation of JQ that is new enough
 # to have the asci_downcase method. That's why we're using the global env variable
@@ -229,3 +237,49 @@ echo "Path to custom script is [${CUSTOM_SCRIPT_DIR}/${CUSTOM_SCRIPT_NAME}]"
 # shellcheck source=/dev/null
 [[ -f "${CUSTOM_SCRIPT_DIR}/${CUSTOM_SCRIPT_NAME}" ]] && source "${CUSTOM_SCRIPT_DIR}/${CUSTOM_SCRIPT_NAME}" ||  \
  echo "No ${CUSTOM_SCRIPT_DIR}/${CUSTOM_SCRIPT_NAME} found"
+
+export ROOT_PROJECT_DIR
+export PROJECT_SETUP
+export PROJECT_NAME
+# if pipeline descriptor is in the provided folder that means that
+# we don't have a descriptor per application
+if [[ "${PIPELINE_DESCRIPTOR_PRESENT}" == "true" ]]; then
+	buildCoordinates="$( getBuildCoordinates )"
+	if [[ "${buildCoordinates}" != "" && "${buildCoordinates}" != "null" ]]; then
+		# multi module - has a coordinates section in the descriptor
+		PROJECT_SETUP="MULTI_MODULE"
+	else
+		# single repo - no coordinates
+		PROJECT_SETUP="SINGLE_REPO"
+	fi
+else
+	# if pipeline descriptor is missing but the provided root project dir exists
+	# that means that it's a multi-project and we need to
+	if [[ -f "${ROOT_PROJECT_DIR}" ]]; then
+		cd "${ROOT_PROJECT_DIR}"
+		buildCoordinates="$( getBuildCoordinates )"
+		if [[ "${buildCoordinates}" != "" && "${buildCoordinates}" != "null" ]]; then
+			# multi project with module - has a coordinates section in the descriptor
+			PROJECT_SETUP="MULTI_PROJECT_WITH_MODULES"
+		else
+			# multi project without modules
+			PROJECT_SETUP="MULTI_PROJECT"
+		fi
+	else
+		# No descriptor and no module is present - will treat it as a single repo with no descriptor
+		PROJECT_SETUP="SINGLE_REPO"
+	fi
+fi
+# Regardless of the project setup, if the root project dir doesn't exist, we should point
+# to the current folder as the root project directory
+if [[ ! -f "${ROOT_PROJECT_DIR}" ]]; then
+	ROOT_PROJECT_DIR="."
+fi
+cd "${ROOT_PROJECT_DIR}"
+# Project name can be taken from env variable or from the project's folder
+# We need it to tag the project somehow if the PROJECT_NAME var wasn't passed
+if [[ "${PROJECT_NAME}" == "" ]]; then
+	PROJECT_NAME="$(basename "$(pwd)")"
+fi
+echo "Project with name [${PROJECT_NAME}] is setup as [${PROJECT_SETUP}]. The project directory is present at [${ROOT_PROJECT_DIR}]"
+

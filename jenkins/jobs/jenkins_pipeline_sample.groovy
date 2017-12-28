@@ -151,7 +151,7 @@ parsedRepos.each {
 			}
 			git {
 				pushOnlyIfSuccess()
-				tag('origin', "dev/\${PIPELINE_VERSION}") {
+				tag('origin', "dev/${gitRepoName}/\${PIPELINE_VERSION}") {
 					create()
 					update()
 				}
@@ -185,7 +185,7 @@ parsedRepos.each {
 					remote {
 						name('origin')
 						url(fullGitRepo)
-						branch('dev/${PIPELINE_VERSION}')
+						branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 						credentials(gitUseSshKey ? gitSshCredentials : gitCredentials)
 					}
 					extensions {
@@ -247,7 +247,7 @@ parsedRepos.each {
 			git {
 				remote {
 					url(fullGitRepo)
-					branch('dev/${PIPELINE_VERSION}')
+					branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 				}
 				extensions {
 					wipeOutWorkspace()
@@ -309,7 +309,7 @@ parsedRepos.each {
 			git {
 				remote {
 					url(fullGitRepo)
-					branch('dev/${PIPELINE_VERSION}')
+					branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 				}
 				extensions {
 					wipeOutWorkspace()
@@ -375,7 +375,7 @@ parsedRepos.each {
 				git {
 					remote {
 						url(fullGitRepo)
-						branch('dev/${PIPELINE_VERSION}')
+						branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 					}
 					extensions {
 						wipeOutWorkspace()
@@ -439,7 +439,7 @@ parsedRepos.each {
 				git {
 					remote {
 						url(fullGitRepo)
-						branch('dev/${PIPELINE_VERSION}')
+						branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 					}
 					extensions {
 						wipeOutWorkspace()
@@ -529,7 +529,7 @@ parsedRepos.each {
 				git {
 					remote {
 						url(fullGitRepo)
-						branch('dev/${PIPELINE_VERSION}')
+						branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 					}
 					extensions {
 						wipeOutWorkspace()
@@ -601,7 +601,7 @@ parsedRepos.each {
 				git {
 					remote {
 						url(fullGitRepo)
-						branch('dev/${PIPELINE_VERSION}')
+						branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 					}
 					extensions {
 						wipeOutWorkspace()
@@ -666,7 +666,7 @@ parsedRepos.each {
 				remote {
 					name('origin')
 					url(fullGitRepo)
-					branch('dev/${PIPELINE_VERSION}')
+					branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 					credentials(gitUseSshKey ? gitSshCredentials : gitCredentials)
 				}
 				extensions {
@@ -707,7 +707,7 @@ parsedRepos.each {
 			git {
 				forcePush(true)
 				pushOnlyIfSuccess()
-				tag('origin', "prod/\${PIPELINE_VERSION}") {
+				tag('origin', "prod/${gitRepoName}/\${PIPELINE_VERSION}") {
 					create()
 					update()
 				}
@@ -743,7 +743,7 @@ parsedRepos.each {
 				remote {
 					name('origin')
 					url(fullGitRepo)
-					branch('dev/${PIPELINE_VERSION}')
+					branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 					credentials(gitUseSshKey ? gitSshCredentials : gitCredentials)
 				}
 				extensions {
@@ -789,7 +789,7 @@ parsedRepos.each {
 				remote {
 					name('origin')
 					url(fullGitRepo)
-					branch('dev/${PIPELINE_VERSION}')
+					branch("dev/${gitRepoName}/\${PIPELINE_VERSION}")
 					credentials(gitUseSshKey ? gitSshCredentials : gitCredentials)
 				}
 				extensions {
